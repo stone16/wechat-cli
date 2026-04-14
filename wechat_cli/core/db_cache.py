@@ -54,8 +54,16 @@ class DBCache:
         try:
             with open(self.MTIME_FILE, 'w', encoding="utf-8") as f:
                 json.dump(data, f)
-        except OSError:
-            pass
+        except OSError as e:
+            # Cache persistence is best-effort (e.g. read-only /tmp), but stay
+            # loud so callers can tell the difference between "cached across
+            # runs" and "silently re-decrypting everything each time".
+            import sys
+            print(
+                f"[wechat-cli] warning: failed to persist decryption cache "
+                f"index to {self.MTIME_FILE}: {e}",
+                file=sys.stderr,
+            )
 
     def get(self, rel_key):
         key_info = get_key_info(self._all_keys, rel_key)
