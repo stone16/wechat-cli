@@ -13,13 +13,20 @@ from ..core.messages import (
 from ..output.formatter import output
 
 
+DEFAULT_EXPORT_LIMIT = 100000
+
+
 @click.command("export")
 @click.argument("chat_name")
 @click.option("--format", "fmt", default="markdown", type=click.Choice(["markdown", "txt"]), help="导出格式")
 @click.option("--output", "output_path", default=None, help="输出文件路径（默认输出到 stdout）")
 @click.option("--start-time", default="", help="起始时间 YYYY-MM-DD [HH:MM[:SS]]")
 @click.option("--end-time", default="", help="结束时间 YYYY-MM-DD [HH:MM[:SS]]")
-@click.option("--limit", default=500, help="导出消息数量")
+@click.option(
+    "--limit",
+    default=DEFAULT_EXPORT_LIMIT,
+    help=f"导出消息数量上限（默认 {DEFAULT_EXPORT_LIMIT}；若命中上限会打印警告）",
+)
 @click.pass_context
 def export(ctx, chat_name, fmt, output_path, start_time, end_time, limit):
     """导出聊天记录为 markdown 或纯文本
@@ -56,6 +63,13 @@ def export(ctx, chat_name, fmt, output_path, start_time, end_time, limit):
     if not lines:
         click.echo(f"{chat_ctx['display_name']} 无消息记录", err=True)
         ctx.exit(0)
+
+    if len(lines) == limit:
+        click.echo(
+            f"警告: 命中 --limit={limit}，可能有消息被截断。"
+            f"若需全部导出请调大 --limit。",
+            err=True,
+        )
 
     now = datetime.now().strftime('%Y-%m-%d %H:%M')
     chat_type = "群聊" if chat_ctx['is_group'] else "私聊"
