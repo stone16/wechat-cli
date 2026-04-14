@@ -36,11 +36,22 @@ MSG_TYPE_NAMES = list(MSG_TYPE_FILTERS.keys())
 
 # ---- 消息 DB 发现 ----
 
+_MSG_DB_BASENAME_RE = re.compile(r"^message_\d+\.db$")
+
+
 def find_msg_db_keys(all_keys):
+    """用户聊天消息 shard（message_N.db），排除 biz_message_N.db 等变体。
+
+    `re.search(r"message_\\d+\\.db$", ...)` 会误命中 `biz_message_0.db` —— 字符串
+    末尾确实是 `message_0.db`。用 basename 精确匹配 `^message_\\d+\\.db$` 避坑。
+    """
+    def _basename(path):
+        return path.replace("\\", "/").rsplit("/", 1)[-1]
+
     return sorted([
         k for k in all_keys
         if any(v.startswith("message/") for v in key_path_variants(k))
-        and any(re.search(r"message_\d+\.db$", v) for v in key_path_variants(k))
+        and any(_MSG_DB_BASENAME_RE.match(_basename(v)) for v in key_path_variants(k))
     ])
 
 
