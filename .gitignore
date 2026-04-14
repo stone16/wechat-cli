@@ -38,6 +38,9 @@ Thumbs.db
 *.json
 !pyproject.toml
 !npm/**/package.json
+.env
+.env.*
+!.env.example
 
 # Temp files
 *.tmp
