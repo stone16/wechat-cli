@@ -366,7 +366,7 @@ wechat-cli new-messages                    # 后续: 仅返回上次以来的新
 
 - `wechat-cli export` / `scripts/transcribe_export.py` 产出的 markdown 默认落在这里
 - **整个目录已 `.gitignore`**，只保留 `output/README.md` 作为存在性标记
-- 脚本里 `--output` 不传时会自动推导文件名到 `output/<chat>_<start>_<end>_transcribed.md`
+- 脚本里 `--output` 不传时会自动推导文件名到 `output/<chat>_<hash>_<start>_<end>_transcribed.md`
 
 ### `scripts/transcribe_export.py` —— 语音消息转文字
 

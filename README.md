@@ -368,7 +368,7 @@ This fork ships some scaffolding alongside the main CLI.
 
 - Markdown output from `wechat-cli export` / `scripts/transcribe_export.py` lands here by default
 - **The whole directory is `.gitignored`**; only `output/README.md` is tracked as an existence marker
-- When `--output` is omitted, the transcription script auto-derives `output/<chat>_<start>_<end>_transcribed.md`
+- When `--output` is omitted, the transcription script auto-derives `output/<chat>_<hash>_<start>_<end>_transcribed.md`
 
 ### `scripts/transcribe_export.py` — voice message transcription
 

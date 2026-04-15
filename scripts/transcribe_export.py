@@ -227,7 +227,7 @@ def main() -> int:
         default=None,
         help=(
             "输出 markdown 路径。不指定时默认写入 "
-            "<repo>/output/<chat>_<start>_<end>_transcribed.md"
+            "<repo>/output/<chat>_<hash>_<start>_<end>_transcribed.md"
         ),
     )
     ap.add_argument(
@@ -285,7 +285,7 @@ def main() -> int:
             print(f"  [{i}/{len(voice_msgs)}] {ts_str} local_id={local_id} ✗ {e}")
 
     output_path = Path(args.output) if args.output else _default_output_path(
-        args.chat, args.start_time, args.end_time
+        username, args.chat, args.start_time, args.end_time
     )
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -296,10 +296,15 @@ def main() -> int:
     return 0
 
 
-def _default_output_path(chat: str, start_time: str, end_time: str) -> Path:
-    """Default to <repo>/output/<safe-chat>_<start>_<end>_transcribed.md."""
+def _default_output_path(username: str, chat: str, start_time: str, end_time: str) -> Path:
+    """Default to <repo>/output/<safe-chat>_<short-username-hash>_<start>_<end>_transcribed.md.
+
+    Includes a short hash of the resolved username to prevent collisions when
+    different chat names sanitize to the same basename (e.g. 'Project/A' vs 'Project A').
+    """
     safe_chat = re.sub(r"[^\w\u4e00-\u9fff-]+", "_", chat).strip("_") or "chat"
-    return ROOT / "output" / f"{safe_chat}_{start_time}_{end_time}_transcribed.md"
+    name_hash = hashlib.md5(username.encode()).hexdigest()[:6]
+    return ROOT / "output" / f"{safe_chat}_{name_hash}_{start_time}_{end_time}_transcribed.md"
 
 
 if __name__ == "__main__":
