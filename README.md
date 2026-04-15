@@ -16,6 +16,12 @@ Chat history · Contacts · Sessions · Favorites · Statistics · Export
 
 ---
 
+> **📦 Personal fork notice**
+>
+> This repo (`stone16/wechat-cli`) is a personal fork of [`freestylefly/wechat-cli`](https://github.com/freestylefly/wechat-cli), **maintained primarily for my own workflow**. On top of upstream it adds bug fixes, workflow scripts (e.g. `scripts/transcribe_export.py` for voice-to-text), and a `output/` artifact convention. Sync cadence with upstream is best-effort, and no external compatibility is promised — feel free to fork if useful. Please file upstream issues/PRs against `freestylefly/wechat-cli`.
+
+---
+
 ## ✨ Highlights
 
 - **🚀 Zero-config install** — `npm install -g` and you're done, no Python needed
@@ -351,6 +357,40 @@ WeChat stores chat data in SQLCipher-encrypted SQLite databases locally. WeChat 
 1. **Extracts keys** — scans WeChat process memory for encryption keys (`init`)
 2. **Decrypts on-the-fly** — transparent page-level AES-256-CBC decryption with caching
 3. **Queries locally** — all data stays on your machine, no network access
+
+---
+
+## 🛠️ Personal tooling in `scripts/` & `output/`
+
+This fork ships some scaffolding alongside the main CLI.
+
+### `output/` — the single home for locally generated artifacts
+
+- Markdown output from `wechat-cli export` / `scripts/transcribe_export.py` lands here by default
+- **The whole directory is `.gitignored`**; only `output/README.md` is tracked as an existence marker
+- When `--output` is omitted, the transcription script auto-derives `output/<chat>_<hash>_<start>_<end>_transcribed.md`
+
+### `scripts/transcribe_export.py` — voice message transcription
+
+Replaces `[语音]` (voice message) placeholders in an exported markdown with text transcribed by 阿里云 DashScope Paraformer. Handy for reports/retrospectives.
+
+```bash
+# 1. Export first
+wechat-cli export "GroupName" --start-time 2026-04-07 --end-time 2026-04-14 \
+    --output output/GroupName_raw.md
+
+# 2. Put the DashScope key in .env (.env is gitignored)
+cp .env.example .env
+# edit .env to fill in DASHSCOPE_API_KEY
+
+# 3. Transcribe (omit --output to write under output/)
+python scripts/transcribe_export.py \
+    --chat "GroupName" \
+    --start-time 2026-04-07 --end-time 2026-04-14 \
+    --input output/GroupName_raw.md
+```
+
+Deps: `pip install pilk dashscope`.
 
 ---
 

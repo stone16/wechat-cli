@@ -222,7 +222,14 @@ def main() -> int:
     ap.add_argument("--start-time", required=True, help="YYYY-MM-DD")
     ap.add_argument("--end-time", required=True, help="YYYY-MM-DD")
     ap.add_argument("--input", required=True, help="原 markdown 路径")
-    ap.add_argument("--output", required=True, help="输出 markdown 路径")
+    ap.add_argument(
+        "--output",
+        default=None,
+        help=(
+            "输出 markdown 路径。不指定时默认写入 "
+            "<repo>/output/<chat>_<hash>_<start>_<end>_transcribed.md"
+        ),
+    )
     ap.add_argument(
         "--keep-intermediate",
         action="store_true",
@@ -277,11 +284,27 @@ def main() -> int:
             transcripts[local_id] = f"(转录失败: {e})"
             print(f"  [{i}/{len(voice_msgs)}] {ts_str} local_id={local_id} ✗ {e}")
 
-    replaced = rewrite_markdown(
-        Path(args.input), Path(args.output), transcripts, voice_msgs
+    output_path = Path(args.output) if args.output else _default_output_path(
+        username, args.chat, args.start_time, args.end_time
     )
-    print(f"\n✅ 完成: 替换 {replaced}/{len(voice_msgs)} 条，输出 → {args.output}")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    replaced = rewrite_markdown(
+        Path(args.input), output_path, transcripts, voice_msgs
+    )
+    print(f"\n✅ 完成: 替换 {replaced}/{len(voice_msgs)} 条，输出 → {output_path}")
     return 0
+
+
+def _default_output_path(username: str, chat: str, start_time: str, end_time: str) -> Path:
+    """Default to <repo>/output/<safe-chat>_<short-username-hash>_<start>_<end>_transcribed.md.
+
+    Includes a short hash of the resolved username to prevent collisions when
+    different chat names sanitize to the same basename (e.g. 'Project/A' vs 'Project A').
+    """
+    safe_chat = re.sub(r"[^\w\u4e00-\u9fff-]+", "_", chat).strip("_") or "chat"
+    name_hash = hashlib.md5(username.encode()).hexdigest()[:6]
+    return ROOT / "output" / f"{safe_chat}_{name_hash}_{start_time}_{end_time}_transcribed.md"
 
 
 if __name__ == "__main__":

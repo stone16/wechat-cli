@@ -45,3 +45,7 @@ Thumbs.db
 # Temp files
 *.tmp
 *.bak
+
+# Local generated outputs — never commit (may contain private chat data)
+output/*
+!output/README.md

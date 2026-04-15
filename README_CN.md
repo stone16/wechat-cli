@@ -16,6 +16,12 @@
 
 ---
 
+> **📦 个人维护分支说明**
+>
+> 本仓库（`stone16/wechat-cli`）是 [`freestylefly/wechat-cli`](https://github.com/freestylefly/wechat-cli) 的个人维护分支，**主要为自用场景服务**：在上游基础上追加 bug 修复、工作流脚本（如 `scripts/transcribe_export.py` 语音转录）和本地产物目录约定（`output/`）。不保证与上游同步节奏，也不对外承诺兼容性——如果你路过并且觉得有用，欢迎 fork。上游 issue/PR 请优先提到 freestylefly 主仓。
+
+---
+
 ## ✨ 功能亮点
 
 - **🚀 开箱即用** — `npm install -g` 一键安装，无需 Python
@@ -349,6 +355,40 @@ wechat-cli new-messages                    # 后续: 仅返回上次以来的新
 1. **提取密钥** — 扫描微信进程内存获取加密密钥（`init`）
 2. **即时解密** — 透明页级 AES-256-CBC 解密，带缓存
 3. **本地查询** — 所有数据留在本机，无需网络访问
+
+---
+
+## 🛠️ 自用工具 `scripts/` & 产物 `output/`
+
+本仓库为个人使用维护，除了主 CLI 外还附带若干脚手架。
+
+### `output/` —— 所有本地生成物的归口
+
+- `wechat-cli export` / `scripts/transcribe_export.py` 产出的 markdown 默认落在这里
+- **整个目录已 `.gitignore`**，只保留 `output/README.md` 作为存在性标记
+- 脚本里 `--output` 不传时会自动推导文件名到 `output/<chat>_<hash>_<start>_<end>_transcribed.md`
+
+### `scripts/transcribe_export.py` —— 语音消息转文字
+
+把 export 出来的 markdown 里的 `[语音]` 行替换为阿里云 DashScope Paraformer 转录后的文字，便于做报告/复盘。
+
+```bash
+# 1. 先导出
+wechat-cli export "某群" --start-time 2026-04-07 --end-time 2026-04-14 \
+    --output output/某群_raw.md
+
+# 2. 把 DashScope key 放进 .env（.env 已 gitignore）
+cp .env.example .env
+# 编辑 .env，填入 DASHSCOPE_API_KEY
+
+# 3. 转录（--output 不指定就写到 output/）
+python scripts/transcribe_export.py \
+    --chat "某群" \
+    --start-time 2026-04-07 --end-time 2026-04-14 \
+    --input output/某群_raw.md
+```
+
+依赖：`pip install pilk dashscope`。
 
 ---
 
